@@ -1,5 +1,5 @@
 var Service, Characteristic;
-var request = require('sync-request');
+var request = require('request');
 
 var url 
 
@@ -21,43 +21,46 @@ function HTTPSwitch(log, config) {
 HTTPSwitch.prototype = {
 
     getPowerState: function (callback) {
-        var body;
-		var res = request("GET", this.status, {});
-		if(res.statusCode == 200 && res.body != undefined){
-			if(res.body == "1"){
-				this.log("HTTP status 1 received!")
-				callback(null, true);
+        request.get({
+        	url: this.status
+	    }, function(error, response, body) {
+		    if (!error && response.statusCode == 200){
+				if(body == "1"){
+					this.log("HTTP status 1 received!")
+					callback(null, true);
+				}else{
+					this.log("HTTP status 0 received!")
+					callback(null, false);
+				}
 			}else{
-				this.log("HTTP status 0 received!")
-				callback(null, false);
+				this.log('HTTP status failed for ' + toggle);
+				callback(error);
 			}
-		}else{
-			this.log('HTTP status failed for ' + toggle);
-			callback(error);
-		}
+	    }.bind(this));
     },
 
     setPowerState: function(powerOn, callback) {
-        var body;
-		var res = request("GET", this.toggle, {});
-		if(res.statusCode == 200 && res.body != undefined){
-			if(res.body == "1"){
-				this.log("HTTP status 1 received!")
+	    request.get({
+        	url: this.toggle
+	    }, function(error, response, body) {
+		    if (!error && response.statusCode == 200){
+				if(body == "1"){
+					this.log("HTTP status 1 received!")
+				}else{
+					this.log("HTTP status 0 received!")
+				}
+				if( (body == "1") == powerOn ){
+					this.log("HTTP toggle successfull!")
+					callback(null, powerOn)
+				}else{
+					this.log("HTTP toggle failed! " + body)
+					callback(null, !powerOn)
+				}
 			}else{
-				this.log("HTTP status 0 received!")
+				this.log('HTTP status failed for ' + toggle);
+				callback(error);
 			}
-			if( (res.body == "1") == powerOn ){
-				this.log("HTTP toggle successfull!")
-				callback(null, powerOn)
-			}else{
-				this.log("HTTP toggle failed! " + res.body)
-				callback(null, !powerOn)
-			}
-		}else{
-			this.log('HTTP toggle failed for ' + toggle);
-			callback(error);
-		}
-
+	    }.bind(this));
     },
 
     identify: function (callback) {
