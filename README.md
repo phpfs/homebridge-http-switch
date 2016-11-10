@@ -20,3 +20,7 @@ npm install -g
         }
     ],
 ```
+
+## HTTP Response
+This Plugin expects from both *toggle_url* and *status_url* the following response:
+**0** for *Off* and **1** for *On*
